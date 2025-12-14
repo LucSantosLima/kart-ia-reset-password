@@ -50,9 +50,23 @@
         cursor: pointer;
       }
 
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .msg {
         margin-top: 15px;
         text-align: center;
+        font-weight: bold;
+      }
+
+      .error {
+        color: #ff4d4d;
+      }
+
+      .success {
+        color: #4caf50;
       }
     </style>
   </head>
@@ -67,7 +81,13 @@
         placeholder="Digite sua nova senha"
       />
 
-      <button onclick="resetPassword()">Confirmar</button>
+      <input
+        type="password"
+        id="confirmPassword"
+        placeholder="Confirme sua nova senha"
+      />
+
+      <button id="submitBtn" onclick="resetPassword()">Confirmar</button>
 
       <div class="msg" id="msg"></div>
     </div>
@@ -75,44 +95,68 @@
     <script>
       // Configuração do Appwrite
       const client = new Appwrite.Client()
-        .setEndpoint("https://nyc.cloud.appwrite.io/v1") // 🔴 ENDPOINT
-        .setProject("68f65d83002fe8dd2701"); // 🔴 PROJECT ID
+        .setEndpoint("https://nyc.cloud.appwrite.io/v1")
+        .setProject("68f65d83002fe8dd2701");
 
       const account = new Appwrite.Account(client);
 
-      // Pegando parâmetros da URL
       const params = new URLSearchParams(window.location.search);
       const userId = params.get("userId");
       const secret = params.get("secret");
 
       const msgDiv = document.getElementById("msg");
+      const submitBtn = document.getElementById("submitBtn");
 
+      // Validação do link
       if (!userId || !secret) {
         msgDiv.innerText = "Link inválido ou expirado.";
+        msgDiv.className = "msg error";
+        submitBtn.disabled = true;
       }
 
-      // Função para redefinir a senha
       async function resetPassword() {
         const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
 
-        if (!password) {
-          msgDiv.innerText = "Digite a nova senha.";
+        msgDiv.innerText = "";
+        msgDiv.className = "msg";
+
+        if (!password || !confirmPassword) {
+          msgDiv.innerText = "Preencha todos os campos.";
+          msgDiv.classList.add("error");
           return;
         }
 
+        if (password.length < 8) {
+          msgDiv.innerText = "A senha deve ter pelo menos 8 caracteres.";
+          msgDiv.classList.add("error");
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          msgDiv.innerText = "As senhas não coincidem.";
+          msgDiv.classList.add("error");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Processando...";
+
         try {
-          // Aqui está a alteração: agora usamos 4 parâmetros
           await account.updateRecovery(userId, secret, password, password);
 
           msgDiv.innerText = "Senha redefinida com sucesso! ✅";
+          msgDiv.classList.add("success");
 
-          // Opcional: redirecionar após 2 segundos
-          // setTimeout(() => {
-          //   window.location.href = "/login";
-          // }, 2000);
+          submitBtn.innerText = "Concluído";
         } catch (err) {
           console.error(err);
           msgDiv.innerText = "Erro ao redefinir a senha. Tente novamente.";
+          msgDiv.classList.add("error");
+
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Confirmar";
         }
       }
     </script>
