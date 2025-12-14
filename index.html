@@ -73,36 +73,46 @@
     </div>
 
     <script>
+      // Configuração do Appwrite
       const client = new Appwrite.Client()
         .setEndpoint("https://nyc.cloud.appwrite.io/v1") // 🔴 ENDPOINT
         .setProject("68f65d83002fe8dd2701"); // 🔴 PROJECT ID
 
       const account = new Appwrite.Account(client);
 
+      // Pegando parâmetros da URL
       const params = new URLSearchParams(window.location.search);
       const userId = params.get("userId");
       const secret = params.get("secret");
 
+      const msgDiv = document.getElementById("msg");
+
       if (!userId || !secret) {
-        document.getElementById("msg").innerText =
-          "Link inválido ou expirado.";
+        msgDiv.innerText = "Link inválido ou expirado.";
       }
 
+      // Função para redefinir a senha
       async function resetPassword() {
         const password = document.getElementById("password").value;
-        const msg = document.getElementById("msg");
 
         if (!password) {
-          msg.innerText = "Digite a nova senha.";
+          msgDiv.innerText = "Digite a nova senha.";
           return;
         }
 
         try {
-          await account.updateRecovery(userId, secret, password);
-          msg.innerText = "Senha redefinida com sucesso! ✅";
+          // Aqui está a alteração: agora usamos 4 parâmetros
+          await account.updateRecovery(userId, secret, password, password);
+
+          msgDiv.innerText = "Senha redefinida com sucesso! ✅";
+
+          // Opcional: redirecionar após 2 segundos
+          // setTimeout(() => {
+          //   window.location.href = "/login";
+          // }, 2000);
         } catch (err) {
           console.error(err);
-          msg.innerText = "Erro ao redefinir a senha.";
+          msgDiv.innerText = "Erro ao redefinir a senha. Tente novamente.";
         }
       }
     </script>
