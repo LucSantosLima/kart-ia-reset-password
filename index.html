@@ -5,7 +5,14 @@
     <title>Redefinir senha</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Appwrite SDK -->
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+
+    <!-- Ionicons (ícone de ver senha) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ionicons@7.1.0/dist/css/ionicons.min.css"
+    />
 
     <style>
       body {
@@ -28,16 +35,40 @@
       h1 {
         text-align: center;
         color: #ffd700;
+        margin-bottom: 25px;
       }
 
-      input {
-        width: 100%;
-        padding: 12px;
-        margin: 10px 0;
-        border-radius: 6px;
+      .password-container {
+        display: flex;
+        align-items: center;
         border: 1px solid #ffd700;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        padding-right: 8px;
+      }
+
+      .password-container input {
+        flex: 1;
+        padding: 12px;
+        border: none;
         background: #000;
         color: #fff;
+        font-size: 14px;
+      }
+
+      .password-container input::placeholder {
+        color: #777;
+      }
+
+      .password-container input:focus {
+        outline: none;
+      }
+
+      .eye-btn {
+        font-size: 22px;
+        color: #ffd700;
+        cursor: pointer;
+        padding: 4px;
       }
 
       button {
@@ -45,9 +76,10 @@
         padding: 12px;
         background: #ffd700;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
+        margin-top: 10px;
       }
 
       button:disabled {
@@ -75,17 +107,29 @@
     <div class="container">
       <h1>Nova senha</h1>
 
-      <input
-        type="password"
-        id="password"
-        placeholder="Digite sua nova senha"
-      />
+      <div class="password-container">
+        <input
+          type="password"
+          id="password"
+          placeholder="Digite sua nova senha"
+        />
+        <i
+          class="icon ion-md-eye eye-btn"
+          onclick="togglePassword('password', this)"
+        ></i>
+      </div>
 
-      <input
-        type="password"
-        id="confirmPassword"
-        placeholder="Confirme sua nova senha"
-      />
+      <div class="password-container">
+        <input
+          type="password"
+          id="confirmPassword"
+          placeholder="Confirme sua nova senha"
+        />
+        <i
+          class="icon ion-md-eye eye-btn"
+          onclick="togglePassword('confirmPassword', this)"
+        ></i>
+      </div>
 
       <button id="submitBtn" onclick="resetPassword()">Confirmar</button>
 
@@ -100,6 +144,7 @@
 
       const account = new Appwrite.Account(client);
 
+      // Parâmetros da URL
       const params = new URLSearchParams(window.location.search);
       const userId = params.get("userId");
       const secret = params.get("secret");
@@ -114,6 +159,20 @@
         submitBtn.disabled = true;
       }
 
+      // Mostrar / ocultar senha
+      function togglePassword(id, icon) {
+        const input = document.getElementById(id);
+
+        if (input.type === "password") {
+          input.type = "text";
+          icon.className = "icon ion-md-eye-off eye-btn";
+        } else {
+          input.type = "password";
+          icon.className = "icon ion-md-eye eye-btn";
+        }
+      }
+
+      // Redefinir senha
       async function resetPassword() {
         const password = document.getElementById("password").value;
         const confirmPassword =
@@ -148,7 +207,6 @@
 
           msgDiv.innerText = "Senha redefinida com sucesso! ✅";
           msgDiv.classList.add("success");
-
           submitBtn.innerText = "Concluído";
         } catch (err) {
           console.error(err);
